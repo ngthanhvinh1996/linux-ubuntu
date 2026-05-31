@@ -85,7 +85,7 @@ const struct regmap_config inv_icm42600_regmap_config = {
 	.rd_noinc_table = inv_icm42600_regmap_rd_noinc_accesses,
 	.cache_type = REGCACHE_MAPLE,
 };
-EXPORT_SYMBOL_NS_GPL(inv_icm42600_regmap_config, "IIO_ICM42600");
+EXPORT_SYMBOL_NS_GPL(inv_icm42600_regmap_config, IIO_ICM42600);
 
 /* define specific regmap for SPI not supporting burst write */
 const struct regmap_config inv_icm42600_spi_regmap_config = {
@@ -100,7 +100,7 @@ const struct regmap_config inv_icm42600_spi_regmap_config = {
 	.cache_type = REGCACHE_MAPLE,
 	.use_single_write = true,
 };
-EXPORT_SYMBOL_NS_GPL(inv_icm42600_spi_regmap_config, "IIO_ICM42600");
+EXPORT_SYMBOL_NS_GPL(inv_icm42600_spi_regmap_config, IIO_ICM42600);
 
 struct inv_icm42600_hw {
 	u8 whoami;
@@ -794,7 +794,7 @@ int inv_icm42600_core_probe(struct regmap *regmap, int chip,
 		return ret;
 
 	/* setup runtime power management */
-	ret = devm_pm_runtime_set_active_enabled(dev);
+	ret = pm_runtime_set_active(dev);
 	if (ret)
 		return ret;
 
@@ -803,7 +803,7 @@ int inv_icm42600_core_probe(struct regmap *regmap, int chip,
 
 	return ret;
 }
-EXPORT_SYMBOL_NS_GPL(inv_icm42600_core_probe, "IIO_ICM42600");
+EXPORT_SYMBOL_NS_GPL(inv_icm42600_core_probe, IIO_ICM42600);
 
 /*
  * Suspend saves sensors state and turns everything off.
@@ -958,4 +958,4 @@ EXPORT_NS_GPL_DEV_PM_OPS(inv_icm42600_pm_ops, IIO_ICM42600) = {
 MODULE_AUTHOR("InvenSense, Inc.");
 MODULE_DESCRIPTION("InvenSense ICM-426xx device driver");
 MODULE_LICENSE("GPL");
-MODULE_IMPORT_NS("IIO_INV_SENSORS_TIMESTAMP");
+MODULE_IMPORT_NS(IIO_INV_SENSORS_TIMESTAMP);

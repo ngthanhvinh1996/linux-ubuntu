@@ -77,8 +77,8 @@ static const struct iio_chan_spec inv_icm42600_gyro_channels[] = {
  */
 struct inv_icm42600_gyro_buffer {
 	struct inv_icm42600_fifo_sensor_data gyro;
-	s16 temp;
-	aligned_s64 timestamp;
+	int16_t temp;
+	int64_t timestamp __aligned(8);
 };
 
 #define INV_ICM42600_SCAN_MASK_GYRO_3AXIS				\
@@ -587,10 +587,10 @@ static int inv_icm42600_gyro_read_raw(struct iio_dev *indio_dev,
 
 	switch (mask) {
 	case IIO_CHAN_INFO_RAW:
-		if (!iio_device_claim_direct(indio_dev))
+		if (!iio_device_claim_direct_mode(indio_dev))
 			return -EBUSY;
 		ret = inv_icm42600_gyro_read_sensor(st, chan, &data);
-		iio_device_release_direct(indio_dev);
+		iio_device_release_direct_mode(indio_dev);
 		if (ret)
 			return ret;
 		*val = data;
@@ -648,18 +648,18 @@ static int inv_icm42600_gyro_write_raw(struct iio_dev *indio_dev,
 
 	switch (mask) {
 	case IIO_CHAN_INFO_SCALE:
-		if (!iio_device_claim_direct(indio_dev))
+		if (!iio_device_claim_direct_mode(indio_dev))
 			return -EBUSY;
 		ret = inv_icm42600_gyro_write_scale(indio_dev, val, val2);
-		iio_device_release_direct(indio_dev);
+		iio_device_release_direct_mode(indio_dev);
 		return ret;
 	case IIO_CHAN_INFO_SAMP_FREQ:
 		return inv_icm42600_gyro_write_odr(indio_dev, val, val2);
 	case IIO_CHAN_INFO_CALIBBIAS:
-		if (!iio_device_claim_direct(indio_dev))
+		if (!iio_device_claim_direct_mode(indio_dev))
 			return -EBUSY;
 		ret = inv_icm42600_gyro_write_offset(st, chan, val, val2);
-		iio_device_release_direct(indio_dev);
+		iio_device_release_direct_mode(indio_dev);
 		return ret;
 	default:
 		return -EINVAL;

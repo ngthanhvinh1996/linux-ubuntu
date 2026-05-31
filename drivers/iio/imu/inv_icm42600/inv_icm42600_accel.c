@@ -204,7 +204,7 @@ static const struct iio_chan_spec inv_icm42600_accel_channels[] = {
 struct inv_icm42600_accel_buffer {
 	struct inv_icm42600_fifo_sensor_data accel;
 	s16 temp;
-	aligned_s64 timestamp;
+	int64_t timestamp __aligned(8);
 };
 
 #define INV_ICM42600_SCAN_MASK_ACCEL_3AXIS				\
@@ -885,10 +885,10 @@ static int inv_icm42600_accel_read_raw(struct iio_dev *indio_dev,
 
 	switch (mask) {
 	case IIO_CHAN_INFO_RAW:
-		if (!iio_device_claim_direct(indio_dev))
+		if (!iio_device_claim_direct_mode(indio_dev))
 			return -EBUSY;
 		ret = inv_icm42600_accel_read_sensor(indio_dev, chan, &data);
-		iio_device_release_direct(indio_dev);
+		iio_device_release_direct_mode(indio_dev);
 		if (ret)
 			return ret;
 		*val = data;
@@ -946,18 +946,18 @@ static int inv_icm42600_accel_write_raw(struct iio_dev *indio_dev,
 
 	switch (mask) {
 	case IIO_CHAN_INFO_SCALE:
-		if (!iio_device_claim_direct(indio_dev))
+		if (!iio_device_claim_direct_mode(indio_dev))
 			return -EBUSY;
 		ret = inv_icm42600_accel_write_scale(indio_dev, val, val2);
-		iio_device_release_direct(indio_dev);
+		iio_device_release_direct_mode(indio_dev);
 		return ret;
 	case IIO_CHAN_INFO_SAMP_FREQ:
 		return inv_icm42600_accel_write_odr(indio_dev, val, val2);
 	case IIO_CHAN_INFO_CALIBBIAS:
-		if (!iio_device_claim_direct(indio_dev))
+		if (!iio_device_claim_direct_mode(indio_dev))
 			return -EBUSY;
 		ret = inv_icm42600_accel_write_offset(st, chan, val, val2);
-		iio_device_release_direct(indio_dev);
+		iio_device_release_direct_mode(indio_dev);
 		return ret;
 	default:
 		return -EINVAL;
@@ -1028,28 +1028,28 @@ static int inv_icm42600_accel_read_event_config(struct iio_dev *indio_dev,
 	return st->apex.wom.enable ? 1 : 0;
 }
 
-static int inv_icm42600_accel_write_event_config(struct iio_dev *indio_dev,
-						 const struct iio_chan_spec *chan,
-						 enum iio_event_type type,
-						 enum iio_event_direction dir,
-						 bool state)
-{
-	struct inv_icm42600_state *st = iio_device_get_drvdata(indio_dev);
+// static int inv_icm42600_accel_write_event_config(struct iio_dev *indio_dev,
+// 						 const struct iio_chan_spec *chan,
+// 						 enum iio_event_type type,
+// 						 enum iio_event_direction dir,
+// 						 bool state)
+// {
+// 	struct inv_icm42600_state *st = iio_device_get_drvdata(indio_dev);
 
-	/* handle only WoM (roc rising) event */
-	if (type != IIO_EV_TYPE_ROC || dir != IIO_EV_DIR_RISING)
-		return -EINVAL;
+// 	/* handle only WoM (roc rising) event */
+// 	if (type != IIO_EV_TYPE_ROC || dir != IIO_EV_DIR_RISING)
+// 		return -EINVAL;
 
-	scoped_guard(mutex, &st->lock) {
-		if (st->apex.wom.enable == state)
-			return 0;
-	}
+// 	scoped_guard(mutex, &st->lock) {
+// 		if (st->apex.wom.enable == state)
+// 			return 0;
+// 	}
 
-	if (state)
-		return inv_icm42600_accel_enable_wom(indio_dev);
+// 	if (state)
+// 		return inv_icm42600_accel_enable_wom(indio_dev);
 
-	return inv_icm42600_accel_disable_wom(indio_dev);
-}
+// 	return inv_icm42600_accel_disable_wom(indio_dev);
+// }
 
 static int inv_icm42600_accel_read_event_value(struct iio_dev *indio_dev,
 					       const struct iio_chan_spec *chan,
@@ -1132,7 +1132,7 @@ static const struct iio_info inv_icm42600_accel_info = {
 	.hwfifo_set_watermark = inv_icm42600_accel_hwfifo_set_watermark,
 	.hwfifo_flush_to_buffer = inv_icm42600_accel_hwfifo_flush,
 	.read_event_config = inv_icm42600_accel_read_event_config,
-	.write_event_config = inv_icm42600_accel_write_event_config,
+	// .write_event_config = inv_icm42600_accel_write_event_config,
 	.read_event_value = inv_icm42600_accel_read_event_value,
 	.write_event_value = inv_icm42600_accel_write_event_value,
 };
@@ -1196,7 +1196,7 @@ struct iio_dev *inv_icm42600_accel_init(struct inv_icm42600_state *st)
 		return ERR_PTR(ret);
 
 	/* accel events are wakeup capable */
-	ret = devm_device_init_wakeup(&indio_dev->dev);
+	ret = device_init_wakeup(&indio_dev->dev, 1);
 	if (ret)
 		return ERR_PTR(ret);
 
