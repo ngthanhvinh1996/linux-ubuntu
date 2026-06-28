@@ -1718,11 +1718,15 @@
 
 	/* Add device tree for IMU ICM42688 - Vinh Nguyen */
 	imu@68 {
-        compatible = "invensense,icm42688";
+        compatible = "bosch,bmi323";
         reg = <0x68>;
-        interrupts-extended = <&tlmm 151 IRQ_TYPE_EDGE_FALLING>;
-        vdd-supply = <&vreg_l18b_1p8>;
-        vddio-supply = <&vreg_l18b_1p8>;
+
+        // vdd-supply = <&vdd_3v3_sys>;
+        // vddio-supply = <&vdd_3v3_sys>;
+
+        // interrupt-parent = <&pio>;
+        // interrupts = <29 IRQ_TYPE_EDGE_RISING>;
+        // interrupt-names = "INT1";
     };
 };
 
